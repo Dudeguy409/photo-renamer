@@ -64,12 +64,12 @@ else:
 base_dir = "/Users/davidsonac/Pictures/Backgrounds"
 if args.directory is not None:
     base_dir = args.directory[0]
+all_dir = base_dir + "/__All__"
+determine_existing_photos(all_dir)
 
-determine_existing_photos(base_dir)
+recursive_build(base_dir, all_dir)
 
-recursive_build(base_dir, base_dir)
-
-delete_stray_photos(base_dir)
+delete_stray_photos(all_dir)
 
 print("\033[1;36;40m" + str(left_alone_count) + " files left alone, " + str(add_count) + " files added, and " + str(delete_count) + " files deleted.")
 if args.force:
