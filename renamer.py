@@ -8,10 +8,11 @@ renamed_jpg_count = 0
 renamed_raw_count = 0
 
 def recursive_add_mapping(curr_path, curr_name):
+    tmp_names_to_new_names = {}
     for f in os.listdir(curr_path):
-        new_path = curr_path+"/"+f
-        if os.path.isfile(new_path):
-            if new_path.endswith(".jpg") or new_path.endswith(".JPG") :
+        old_path = curr_path + "/" + f
+        if os.path.isfile(old_path):
+            if old_path.endswith(".jpg") or old_path.endswith(".JPG") :
                 global photo_idx
                 global orig_names_to_mod_names
                 filename = f.split(".")[0]
@@ -21,29 +22,46 @@ def recursive_add_mapping(curr_path, curr_name):
                 orig_names_to_mod_names[filename]= new_name
                 global renamed_jpg_count
                 renamed_jpg_count += 1
+                new_path = curr_path + "/" + new_name + "." + fileext
+                tmp_path = curr_path + "/" + new_name + "__tmp__." + fileext
+                tmp_names_to_new_names[tmp_path] = new_path
                 if args.force:
-                    os.rename(curr_path + "/" + f, curr_path + "/" + new_name + "." + fileext)
-                print("\033[1;37;40mrenamed " + curr_path + "/" + f + "  to  " + curr_path + "/" + new_name + "." + fileext)
+                    os.rename(old_path, tmp_path)
+                print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
         else:
-            recursive_add_mapping(new_path, curr_name+"_"+f)
+            recursive_add_mapping(old_path, curr_name+"_"+f)
+    for tmp_path, new_path in tmp_names_to_new_names.items():
+        if args.force:
+            os.rename(tmp_path, new_path)
+        print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
+
 
 def clean_up_raw_folder(raw_path):
+    tmp_names_to_new_names = {}
     global renamed_raw_count
     for f in os.listdir(raw_path):
         filename = f.split(".")[0]
         fileext = f.split(".")[1]
         mapping = orig_names_to_mod_names.get(filename)
+        old_path = raw_path + "/" + f
         if mapping and mapping != "":
+            tmp_path = raw_path + "/" + mapping + "__tmp__." + fileext
+            new_path = raw_path + "/" + mapping + "." + fileext
+            tmp_names_to_new_names[tmp_path] = new_path
             if args.force:
-                os.rename(raw_path + "/" + f, raw_path + "/" + mapping + "." + fileext)
+                os.rename(old_path, tmp_path)
             renamed_raw_count += 1
-            print("\033[1;37;40mrenamed " + raw_path + "/" + f + "  to  " + raw_path + "/" + mapping + "." + fileext)
+            print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
         else:
             if args.force:
-                os.remove(raw_path + "/" + f)
+                os.remove(old_path)
             global delete_count
             delete_count += 1
-            print("\033[1;31;40mdeleted " + raw_path + "/" + f)
+            print("\033[1;31;40mdeleted " + old_path)
+    for tmp_path, new_path in tmp_names_to_new_names.items():
+        if args.force:
+            os.rename(tmp_path, new_path)
+        print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
 
 parser = argparse.ArgumentParser(description='Given the absolute path of a base directory containing images sorted into "raw" and "unprocessed" folders, renames the raw photos after the structure of subdirectories in unprocessed, deleting RAW files whose jpgs were deleted. Also renames the jpgs.')
 parser.add_argument('directory', metavar='Dir', type=str, nargs=1,
