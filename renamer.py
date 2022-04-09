@@ -19,9 +19,9 @@ def recursive_add_mapping(curr_path, curr_name):
                 new_name = curr_name + "_" + str(photo_idx)
                 photo_idx += 1
                 orig_names_to_mod_names[filename]= new_name
+                global renamed_jpg_count
+                renamed_jpg_count += 1
                 if args.force:
-                    global renamed_jpg_count
-                    renamed_jpg_count += 1
                     os.rename(curr_path + "/" + f, curr_path + "/" + new_name + "." + fileext)
                 print("\033[1;37;40mrenamed " + curr_path + "/" + f + "  to  " + curr_path + "/" + new_name + "." + fileext)
         else:
