@@ -37,6 +37,8 @@ def recursive_add_mapping(curr_path, curr_name):
 
 
 def clean_up_raw_folder(raw_path):
+    if not os.path.exists(raw_path):
+        return
     tmp_names_to_new_names = {}
     global renamed_raw_count
     for f in os.listdir(raw_path):
@@ -53,11 +55,12 @@ def clean_up_raw_folder(raw_path):
             renamed_raw_count += 1
             print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
         else:
-            if args.force:
-                os.remove(old_path)
-            global delete_count
-            delete_count += 1
-            print("\033[1;31;40mdeleted " + old_path)
+            if args.clean:
+                if args.force:
+                    os.remove(old_path)
+                global delete_count
+                delete_count += 1
+                print("\033[1;31;40mdeleted " + old_path)
     for tmp_path, new_path in tmp_names_to_new_names.items():
         if args.force:
             os.rename(tmp_path, new_path)
@@ -67,6 +70,8 @@ parser = argparse.ArgumentParser(description='Given the absolute path of a base 
 parser.add_argument('directory', metavar='Dir', type=str, nargs=1,
                     help='absolute path of base photo directory.  Must contain raw and unprocessed subdirectories')
 parser.add_argument("-f", "--force", help="enables changes to be written.  Defaults to false for preview mode. Cannot be undone",
+                    action="store_true")
+parser.add_argument("-c", "--clean", help="deletes raw files that don't have an accompanying unprocessed jpg in any of the subfolders.  Only makes changes when used with the '-f' or '--force' flag as well.  Useful when sorting through and deleting unprocessed jpgs.  Defaults to false. Cannot be undone",
                     action="store_true")
 
 args = parser.parse_args()
@@ -81,7 +86,9 @@ dir_names = base_dir.split("/")
 base_dir_name = dir_names[-1]
 if base_dir_name == '':
     base_dir_name = dir_names[-2]
-recursive_add_mapping(base_dir+"/unprocessed", base_dir_name)
+unprocessed_dir = base_dir + "/unprocessed"
+if os.path.exists(unprocessed_dir):
+    recursive_add_mapping(unprocessed_dir, base_dir_name)
 clean_up_raw_folder(base_dir+"/raw")
 print("\033[1;36;40m" + str(renamed_jpg_count) + " jpg files renamed, " + str(renamed_raw_count) + " raw files renamed, and " + str(delete_count) + " deleted.")
 if args.force:
