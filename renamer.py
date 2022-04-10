@@ -99,7 +99,7 @@ if os.path.exists(unprocessed_dir):
     unprocessed_found =  True
     recursive_add_mapping(unprocessed_dir, base_dir_name)
 clean_up_raw_folder(base_dir+"/raw")
-print("\033[1;36;40m" + str(renamed_jpg_count) + " jpg files renamed, " + str(renamed_raw_count) + " raw files renamed, and " + str(delete_count) + " deleted.")
+print("\033[1;36;40m" + str(renamed_jpg_count) + " jpg files renamed, " + str(renamed_raw_count) + " raw files renamed, and " + str(delete_count) + " raw files deleted.")
 
 if not unprocessed_found:
     print("\033[1;36;40m unprocessed jpg folder was not found and was skipped")
