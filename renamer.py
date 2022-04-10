@@ -38,11 +38,15 @@ def recursive_add_mapping(curr_path, curr_name):
         print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
 
 
-def clean_up_raw_folder(raw_path):
+def clean_up_raw_folder(raw_path, base_dir_name):
     if not os.path.exists(raw_path):
         return
     global raw_found
     raw_found = True
+    global unprocessed_found
+    if not unprocessed_found:
+        rename_raw_photos(raw_path, base_dir_name)
+        return
     tmp_names_to_new_names = {}
     global renamed_raw_count
     for f in os.listdir(raw_path):
@@ -65,6 +69,28 @@ def clean_up_raw_folder(raw_path):
                 global delete_count
                 delete_count += 1
                 print("\033[1;31;40mdeleted " + old_path)
+    for tmp_path, new_path in tmp_names_to_new_names.items():
+        if args.force:
+            os.rename(tmp_path, new_path)
+        print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
+
+def rename_raw_photos(raw_path, base_dir_name):
+    global photo_idx
+    global renamed_raw_count
+    tmp_names_to_new_names = {}
+    for f in os.listdir(raw_path):
+        filename = f.split(".")[0]
+        fileext = f.split(".")[1]
+        old_path = raw_path + "/" + f
+        new_name = base_dir_name + "_" + str(photo_idx)
+        photo_idx += 1
+        tmp_path = raw_path + "/" + new_name + "__tmp__." + fileext
+        new_path = raw_path + "/" + new_name + "." + fileext
+        tmp_names_to_new_names[tmp_path] = new_path
+        if args.force:
+            os.rename(old_path, tmp_path)
+        renamed_raw_count += 1
+        print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
     for tmp_path, new_path in tmp_names_to_new_names.items():
         if args.force:
             os.rename(tmp_path, new_path)
@@ -98,7 +124,7 @@ unprocessed_dir = base_dir + "/unprocessed"
 if os.path.exists(unprocessed_dir):
     unprocessed_found =  True
     recursive_add_mapping(unprocessed_dir, base_dir_name)
-clean_up_raw_folder(base_dir+"/raw")
+clean_up_raw_folder(base_dir+"/raw", base_dir_name)
 print("\033[1;36;40m" + str(renamed_jpg_count) + " jpg files renamed, " + str(renamed_raw_count) + " raw files renamed, and " + str(delete_count) + " raw files deleted.")
 
 if not unprocessed_found:
