@@ -6,6 +6,8 @@ orig_names_to_mod_names = {}
 delete_count = 0
 renamed_jpg_count = 0
 renamed_raw_count = 0
+raw_found = False
+unprocessed_found = False
 
 def recursive_add_mapping(curr_path, curr_name):
     tmp_names_to_new_names = {}
@@ -39,6 +41,8 @@ def recursive_add_mapping(curr_path, curr_name):
 def clean_up_raw_folder(raw_path):
     if not os.path.exists(raw_path):
         return
+    global raw_found
+    raw_found = True
     tmp_names_to_new_names = {}
     global renamed_raw_count
     for f in os.listdir(raw_path):
@@ -76,6 +80,10 @@ parser.add_argument("-c", "--clean", help="deletes raw files that don't have an 
 
 args = parser.parse_args()
 
+if args.clean:
+    print("Raw cleanup flag detected. Raw files without a matching unprocessed jpg will be deleted.")
+else:
+    print("The Raw cleanup flag was not set using '-c', so Raw files without a matching unprocessed jpg will NOT be deleted.")
 if args.force:
     print("Force flag detected. Changes will be made.")
 else:
@@ -88,9 +96,19 @@ if base_dir_name == '':
     base_dir_name = dir_names[-2]
 unprocessed_dir = base_dir + "/unprocessed"
 if os.path.exists(unprocessed_dir):
+    unprocessed_found =  True
     recursive_add_mapping(unprocessed_dir, base_dir_name)
 clean_up_raw_folder(base_dir+"/raw")
 print("\033[1;36;40m" + str(renamed_jpg_count) + " jpg files renamed, " + str(renamed_raw_count) + " raw files renamed, and " + str(delete_count) + " deleted.")
+
+if not unprocessed_found:
+    print("\033[1;36;40m unprocessed jpg folder was not found and was skipped")
+if not raw_found:
+    print("\033[1;36;40m raw folder was not found and was skipped")
+if args.clean:
+    print("Raw cleanup flag detected. Raw files without a matching unprocessed jpg were deleted.")
+else:
+    print("The Raw cleanup flag was not set using '-c', so Raw files without a matching unprocessed jpg were NOT deleted.")
 if args.force:
     print("Force flag detected. Changes were made.")
 else:
