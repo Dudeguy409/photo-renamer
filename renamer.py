@@ -10,28 +10,32 @@ raw_found = False
 unprocessed_found = False
 
 def recursive_add_mapping(curr_path, curr_name):
-    tmp_names_to_new_names = {}
+    timestamps_to_orig_names = {}
     for f in os.listdir(curr_path):
         old_path = curr_path + "/" + f
         if os.path.isfile(old_path):
-            if old_path.endswith(".jpg") or old_path.endswith(".JPG") :
-                global photo_idx
-                global orig_names_to_mod_names
-                filename = f.split(".")[0]
-                fileext = f.split(".")[1]
-                new_name = curr_name + "_" + str(photo_idx)
-                photo_idx += 1
-                orig_names_to_mod_names[filename]= new_name
-                global renamed_jpg_count
-                renamed_jpg_count += 1
-                new_path = curr_path + "/" + new_name + "." + fileext
-                tmp_path = curr_path + "/" + new_name + "__tmp__." + fileext
-                tmp_names_to_new_names[tmp_path] = new_path
-                if args.force:
-                    os.rename(old_path, tmp_path)
-                print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
+            timestamp = os.path.getmtime(old_path)
+            timestamps_to_orig_names[str(timestamp)] = f
         else:
-            recursive_add_mapping(old_path, curr_name+"_"+f)
+            recursive_add_mapping(old_path, curr_name + "_" + f)
+    sorted_timestamps = dict(sorted(timestamps_to_orig_names.items()))
+    global photo_idx
+    global orig_names_to_mod_names
+    tmp_names_to_new_names = {}
+    for ts, f in sorted_timestamps.items():
+        filename = f.split(".")[0]
+        fileext = f.split(".")[1]
+        new_name = curr_name + "_" + str(photo_idx)
+        photo_idx += 1
+        orig_names_to_mod_names[filename]= new_name
+        global renamed_jpg_count
+        renamed_jpg_count += 1
+        new_path = curr_path + "/" + new_name + "." + fileext
+        tmp_path = curr_path + "/" + new_name + "__tmp__." + fileext
+        tmp_names_to_new_names[tmp_path] = new_path
+        if args.force:
+            os.rename(old_path, tmp_path)
+        print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
     for tmp_path, new_path in tmp_names_to_new_names.items():
         if args.force:
             os.rename(tmp_path, new_path)
