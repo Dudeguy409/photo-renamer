@@ -106,24 +106,11 @@ def rename_raw_photos(raw_path, base_dir_name):
             os.rename(tmp_path, new_path)
         print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
 
-parser = argparse.ArgumentParser(description='Given the absolute path of a base directory containing images sorted into "raw" and "unprocessed" folders, renames the raw photos after the structure of subdirectories in unprocessed, deleting RAW files whose jpgs were deleted. Also renames the jpgs.')
-parser.add_argument('directory', metavar='Dir', type=str, nargs=1,
+parser = argparse.ArgumentParser(description='Given the absolute path of two directories containing files and potentially subdirectories, checks to see which files are only found in one directory and not in the other')
+parser.add_argument('directories', metavar='Dirs', type=str, nargs=2,
                     help='absolute path of base photo directory.  Must contain raw and unprocessed subdirectories')
-parser.add_argument("-f", "--force", help="enables changes to be written.  Defaults to false for preview mode. Cannot be undone",
-                    action="store_true")
-parser.add_argument("-c", "--clean", help="deletes raw files that don't have an accompanying unprocessed jpg in any of the subfolders.  Only makes changes when used with the '-f' or '--force' flag as well.  Useful when sorting through and deleting unprocessed jpgs.  Defaults to false. Cannot be undone",
-                    action="store_true")
 
 args = parser.parse_args()
-
-if args.clean:
-    print("Raw cleanup flag detected. Raw files without a matching unprocessed jpg will be deleted.")
-else:
-    print("The Raw cleanup flag was not set using '-c', so Raw files without a matching unprocessed jpg will NOT be deleted.")
-if args.force:
-    print("Force flag detected. Changes will be made.")
-else:
-    print("The force flag was not set using '-f', so no changes will be made.  Preview mode.")
 
 base_dir = args.directory[0]
 dir_names = base_dir.split("/")
@@ -135,17 +122,3 @@ if os.path.exists(unprocessed_dir):
     unprocessed_found =  True
     recursive_add_mapping(unprocessed_dir, base_dir_name)
 clean_up_raw_folder(base_dir+"/raw", base_dir_name)
-print("\033[1;36;40m" + str(renamed_jpg_count) + " jpg files renamed, " + str(renamed_raw_count) + " raw files renamed, and " + str(delete_count) + " raw files deleted.")
-
-if not unprocessed_found:
-    print("\033[1;36;40m unprocessed jpg folder was not found and was skipped")
-if not raw_found:
-    print("\033[1;36;40m raw folder was not found and was skipped")
-if args.clean:
-    print("Raw cleanup flag detected. Raw files without a matching unprocessed jpg were deleted.")
-else:
-    print("The Raw cleanup flag was not set using '-c', so Raw files without a matching unprocessed jpg were NOT deleted.")
-if args.force:
-    print("Force flag detected. Changes were made.")
-else:
-    print("The force flag was not set using '-f', so no changes were made.  Preview mode.")
