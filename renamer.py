@@ -37,23 +37,24 @@ def recursive_add_mapping(curr_path, curr_name):
         for f in files:
             filename = f.split(".")[0]
             fileext = f.split(".")[1]
-            new_name = curr_name + "_" + str(photo_idx)
-            photo_idx += 1
-            already_found = orig_names_to_mod_names.get(filename)
-            if raw_found and already_found:
-                duplicate_unprocessed_count += 1
-                print("\033[1;31;40m found duplicate unprocessed file " + filename + ", full file path: " + f)
-            orig_names_to_mod_names[filename]= new_name
-            orig_names_matched[filename]= False
-            global renamed_jpg_count
-            renamed_jpg_count += 1
-            old_path = curr_path + "/" + f
-            new_path = curr_path + "/" + new_name + "." + fileext
-            tmp_path = curr_path + "/" + new_name + "__tmp__." + fileext
-            tmp_names_to_new_names[tmp_path] = new_path
-            if args.force:
-                os.rename(old_path, tmp_path)
-            #print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
+            if filename != "" :
+                new_name = curr_name + "_" + str(photo_idx)
+                photo_idx += 1
+                already_found = orig_names_to_mod_names.get(filename)
+                if raw_found and already_found:
+                    duplicate_unprocessed_count += 1
+                    print("\033[1;31;40m found duplicate unprocessed file " + filename + ", full file path: " + f)
+                orig_names_to_mod_names[filename]= new_name
+                orig_names_matched[filename]= False
+                global renamed_jpg_count
+                renamed_jpg_count += 1
+                old_path = curr_path + "/" + f
+                new_path = curr_path + "/" + new_name + "." + fileext
+                tmp_path = curr_path + "/" + new_name + "__tmp__." + fileext
+                tmp_names_to_new_names[tmp_path] = new_path
+                if args.force:
+                    os.rename(old_path, tmp_path)
+                #print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
     for tmp_path, new_path in tmp_names_to_new_names.items():
         if args.force:
             os.rename(tmp_path, new_path)
@@ -75,27 +76,28 @@ def clean_up_raw_folder(raw_path, base_dir_name):
     for f in os.listdir(raw_path):
         filename = f.split(".")[0]
         fileext = f.split(".")[1]
-        mapping = orig_names_to_mod_names.get(filename)
-        old_path = raw_path + "/" + f
-        if mapping and mapping != "":
-            tmp_path = raw_path + "/" + mapping + "__tmp__." + fileext
-            new_path = raw_path + "/" + mapping + "." + fileext
-            tmp_names_to_new_names[tmp_path] = new_path
-            orig_names_matched[filename] = True
-            if args.force:
-                os.rename(old_path, tmp_path)
-            renamed_raw_count += 1
-            #print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
-        else:
-            if args.clean:
+        if filename != "":
+            mapping = orig_names_to_mod_names.get(filename)
+            old_path = raw_path + "/" + f
+            if mapping and mapping != "":
+                tmp_path = raw_path + "/" + mapping + "__tmp__." + fileext
+                new_path = raw_path + "/" + mapping + "." + fileext
+                tmp_names_to_new_names[tmp_path] = new_path
+                orig_names_matched[filename] = True
                 if args.force:
-                    os.remove(old_path)
-                global delete_count
-                delete_count += 1
-                print("\033[1;31;40mdeleted " + old_path)
+                    os.rename(old_path, tmp_path)
+                renamed_raw_count += 1
+                #print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
             else:
-                print("\033[1;31;40mfailed to match raw file " + old_path)
-                unmatched_raw_count += 1
+                if args.clean:
+                    if args.force:
+                        os.remove(old_path)
+                    global delete_count
+                    delete_count += 1
+                    print("\033[1;31;40mdeleted " + old_path)
+                else:
+                    print("\033[1;31;40mfailed to match raw file " + old_path)
+                    unmatched_raw_count += 1
     for tmp_path, new_path in tmp_names_to_new_names.items():
         if args.force:
             os.rename(tmp_path, new_path)
