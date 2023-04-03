@@ -52,13 +52,17 @@ def recursive_add_mapping(curr_path, curr_name):
                 new_path = curr_path + "/" + new_name + "." + fileext
                 tmp_path = curr_path + "/" + new_name + "__tmp__." + fileext
                 tmp_names_to_new_names[tmp_path] = new_path
-                if args.force:
-                    os.rename(old_path, tmp_path)
-                #print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
+                if args.rename:
+                    if args.force:
+                        os.rename(old_path, tmp_path)
+                    if args.verbose:
+                        print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
     for tmp_path, new_path in tmp_names_to_new_names.items():
-        if args.force:
-            os.rename(tmp_path, new_path)
-        #print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
+        if args.rename:
+            if args.force:
+                os.rename(tmp_path, new_path)
+            if args.verbose:
+                print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
 
 
 def clean_up_raw_folder(raw_path, base_dir_name):
@@ -84,10 +88,12 @@ def clean_up_raw_folder(raw_path, base_dir_name):
                 new_path = raw_path + "/" + mapping + "." + fileext
                 tmp_names_to_new_names[tmp_path] = new_path
                 orig_names_matched[filename] = True
-                if args.force:
-                    os.rename(old_path, tmp_path)
-                renamed_raw_count += 1
-                #print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
+                if args.rename:
+                    if args.force:
+                        os.rename(old_path, tmp_path)
+                    renamed_raw_count += 1
+                    if args.verbose:
+                        print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
             else:
                 if args.clean:
                     if args.force:
@@ -99,9 +105,11 @@ def clean_up_raw_folder(raw_path, base_dir_name):
                     print("\033[1;31;40mfailed to match raw file " + old_path)
                     unmatched_raw_count += 1
     for tmp_path, new_path in tmp_names_to_new_names.items():
-        if args.force:
-            os.rename(tmp_path, new_path)
-        #print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
+        if args.rename:
+            if args.force:
+                os.rename(tmp_path, new_path)
+            if args.verbose:
+                print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
 
 def print_unmatched_unprocessed():
     global raw_found
@@ -127,14 +135,18 @@ def rename_raw_photos(raw_path, base_dir_name):
         tmp_path = raw_path + "/" + new_name + "__tmp__." + fileext
         new_path = raw_path + "/" + new_name + "." + fileext
         tmp_names_to_new_names[tmp_path] = new_path
-        if args.force:
-            os.rename(old_path, tmp_path)
-        renamed_raw_count += 1
-        print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
+        if args.rename:
+            if args.force:
+                os.rename(old_path, tmp_path)
+            renamed_raw_count += 1
+            if args.verbose:
+                print("\033[1;37;40mrenamed " + old_path + " to " + tmp_path)
     for tmp_path, new_path in tmp_names_to_new_names.items():
-        if args.force:
-            os.rename(tmp_path, new_path)
-        print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
+        if args.rename:
+            if args.force:
+                os.rename(tmp_path, new_path)
+            if args.verbose:
+                print("\033[1;37;40mrenamed " + tmp_path + " to " + new_path)
 
 parser = argparse.ArgumentParser(description='Given the absolute path of a base directory containing images sorted into "raw" and "unprocessed" folders, renames the raw photos after the structure of subdirectories in unprocessed, deleting RAW files whose jpgs were deleted. Also renames the jpgs.')
 parser.add_argument('directory', metavar='Dir', type=str, nargs=1,
@@ -142,6 +154,10 @@ parser.add_argument('directory', metavar='Dir', type=str, nargs=1,
 parser.add_argument("-f", "--force", help="enables changes to be written.  Defaults to false for preview mode. Cannot be undone",
                     action="store_true")
 parser.add_argument("-c", "--clean", help="deletes raw files that don't have an accompanying unprocessed jpg in any of the subfolders.  Only makes changes when used with the '-f' or '--force' flag as well.  Useful when sorting through and deleting unprocessed jpgs.  Defaults to false. Cannot be undone",
+                    action="store_true")
+parser.add_argument("-r", "--rename", help="renames jpg and/or raw files according to their folder structure.  Only makes changes when used with the '-f' or '--force' flag as well.  It is best to only use this flag BEFORE backing up pictures to the cloud, since using this flag after deleting some photos locally will cause the local file names and cloud file names to no longer match.  Defaults to false. Cannot be undone",
+                    action="store_true")
+parser.add_argument("-v", "--verbose", help="prints verbose debug information for what each files was renamed to.  Defaults to false.",
                     action="store_true")
 
 args = parser.parse_args()
